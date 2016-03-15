@@ -4,31 +4,34 @@ import os,sys,re,urllib2
 from selenium import webdriver
 
 #global vars initialization
+browser=None
 hrefs=set([])
 removed=set([])
-output=[]
+#output=[]
+previous=None
+
+
 
 def readPhantomPath():
+    global browser
     with open('phantompath.txt', 'r') as myfile:
-        path = myfile.read()
-        return path
+        path = myfile.read().strip()
+        browser=webdriver.PhantomJS(executable_path=path)
+        #browser.webdriver.FireFox()
 
 
 #actual functionality: open site and scrape/parse
 def parseSite(url,arg,flag):
-    global basearg,hrefs,removed,output
+    global basearg,hrefs,removed,cnt,browser#,output
+
     if (flag):
         basearg=arg
         hrefs.add(basearg)
         print "Found these email addresses:"
-
-    path=readPhantomPath().strip()
-    browser=webdriver.PhantomJS(executable_path=path)
-    #browser.webdriver.FireFox()
+    
     browser.get(arg)
     html=browser.page_source
     arg=browser.current_url #takes care of redirection
-    browser.quit()
 
     if arg[-1] == '/':
 	    arg=arg[:-1]
@@ -69,8 +72,9 @@ def parseSite(url,arg,flag):
     #  the ending of a domain name (ie. .com, .husky.neu.edu, etc...) 
     emails = set(re.findall(r'[\w.-]+@[\w]+[.][\w.-]+', html))
     for email in emails:
-        if email not in output:
-	       output.append(email)
+        #if email not in output:
+        print email
+            #output.append(email)
 
     #print listhrefs
     #print hrefs
@@ -91,6 +95,8 @@ def main():
     if '://' not in arg:
         arg='http://'+arg[0]
 
+    readPhantomPath();
+
     basearg=arg
     parseSite(arg,arg,True)
 
@@ -98,6 +104,5 @@ def main():
 #to run only when script is executed, not imported
 if __name__ == "__main__":
     main()
-    for out in output:
-        print out
+    browser.quit()
 
