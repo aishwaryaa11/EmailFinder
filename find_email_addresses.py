@@ -7,9 +7,7 @@ from selenium import webdriver
 browser=None
 hrefs=set([])
 removed=set([])
-#output=[]
-previous=None
-
+output=[]
 
 
 def readPhantomPath():
@@ -17,12 +15,12 @@ def readPhantomPath():
     with open('phantompath.txt', 'r') as myfile:
         path = myfile.read().strip()
         browser=webdriver.PhantomJS(executable_path=path)
-        #browser.webdriver.FireFox()
+        #browser.webdriver.FireFox()  #use this in case phantomJS isn't working
 
 
 #actual functionality: open site and scrape/parse
 def parseSite(url,arg,flag):
-    global basearg,hrefs,removed,cnt,browser#,output
+    global basearg,hrefs,removed,browser,output
 
     if (flag):
         basearg=arg
@@ -35,9 +33,6 @@ def parseSite(url,arg,flag):
 
     if arg[-1] == '/':
 	    arg=arg[:-1]
-	    #print "arg "+arg
-    
-    #print html
     
 
     #find all hrefs
@@ -53,7 +48,6 @@ def parseSite(url,arg,flag):
         # manage unwanted urls with extensions other than .html
         if pattern.match(url1): #if url1 has an extension
             url1list=url1.split('.')
-            #print "urllist1 "+url1list[-1]
             if url1list[-1] != 'html':
                 listhrefs.remove(url1)
 
@@ -72,12 +66,11 @@ def parseSite(url,arg,flag):
     #  the ending of a domain name (ie. .com, .husky.neu.edu, etc...) 
     emails = set(re.findall(r'[\w.-]+@[\w]+[.][\w.-]+', html))
     for email in emails:
-        #if email not in output:
-        print email
-            #output.append(email)
+        if email not in output:
+            print email
+            output.append(email)
 
-    #print listhrefs
-    #print hrefs
+
     removed.add(url)
 
     while hrefs:
@@ -85,7 +78,7 @@ def parseSite(url,arg,flag):
         arg2=url1.split('"')[1]
     	if '://' not in url1:
     	    arg2=basearg+arg2
-    	    #print "url "+url1
+
     	parseSite(url1,arg2,False)
 
 
@@ -103,6 +96,9 @@ def main():
 
 #to run only when script is executed, not imported
 if __name__ == "__main__":
-    main()
-    browser.quit()
+    try:
+        main()
+        browser.quit()
+    except RuntimeError as e:
+        browser.quit()
 
